@@ -22,8 +22,8 @@
             <columnas>25</columnas>
             <listadoCeldasVivas>
                 <celdaViva>
-                    <fila>10</fila>
-                    <columna>10</columna>
+                    <fila>1</fila>
+                    <columna>1</columna>
                     <codigoOrganismo>SCP096</codigoOrganismo>
                 </celdaViva>
                 <celdaViva>

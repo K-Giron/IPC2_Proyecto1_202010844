@@ -1,6 +1,6 @@
-from Menu import Menu
+from classes.Menu import Menu
 
 if __name__ == '__main__':
     
     menu = Menu()
-    menu.prueba()
+    menu.mostrar(False)
