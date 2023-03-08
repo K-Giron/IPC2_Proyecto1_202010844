@@ -11,13 +11,12 @@ class Menu:
 
     def __init__(self) -> None:
         self.opciones=[
-            'Abrir muestra',
-            'Graficar muestra',
-            'Editar muestra',
-            '----',
-            '----',
-            'Acerca de',
-            'Salir'
+            ' Abrir muestra',
+            ' Graficar muestra',
+            ' Analizar muestra',
+            ' Generar XML',
+            ' Acerca de',
+            ' Salir'
         ]
 
     def mostrar(self,error:bool) -> None:
@@ -55,11 +54,13 @@ class Menu:
         elif(opcion=='2'):
             self.graficarMuestra()
             self.pausa()
-        elif(opcion=='6'):
+        elif(opcion=='3'):
+            print('Lista de organismos')
+        elif(opcion=='5'):
             espera = input('\n\tUSAC - S1\n\tProyecto 1\n\tDesarrollado por Kevin Girón-202010844...')
             self.pausa()  
-        elif(opcion=='7'):
-            pass   
+        elif(opcion=='6'):
+            quit()
         else:
             self.mostrar()
 
@@ -101,6 +102,7 @@ class Menu:
             nuevaMuestra.listaCeldasVivas.agregar_al_inicio(nuevaCeldaViva)
 
         self.muestraAnalizada = nuevaMuestra
+        print('Archivo cargado con exito!!')
 
     def graficarMuestra(self):
         
@@ -151,7 +153,7 @@ class Menu:
                                 inicio=inicio.siguiente
                             break
                         else:
-                            codigoOrganismo='|'
+                            codigoOrganismo='|-'
                         nodoActual = nodoActual.siguiente
 
                     codigoGraphiz = codigoGraphiz + codigoOrganismo
@@ -179,4 +181,33 @@ class Menu:
         archivo = open("./img/muestra.txt","w")
         archivo.write(codigoGraphiz)
         print("Creando imagen...")
-        system("\"C:\\Users\\kevin\\Documents\\Cursos\\ipc2\\IPC2_Proyecto1_202010844\\img\\generarImagen.bat\"")
+        archivo.close()
+        system("dot -Tpng ./img/muestra.txt -o ./img/muestra.png")
+        system("start ./img/muestra.png")
+
+
+    def generateXml(self):
+        print("Generando XML...")
+        xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        xml += '<datosMarte>'
+        xml += '<listaOrganismos>'
+
+        temp = self.head
+        while temp != None:
+            xml += f"""
+    <organismo>
+        <codigo>{temp.dato.getName()}</nombre>
+        <nombre>{temp.dato.getAge()}</edad>
+        <periodos>{temp.dato.getAge() }</periodos>
+        <m>{temp.dato.getSize()}</m>
+        <resultado>{temp.dato.getResult()}</resultado>
+    </paciente>"""
+            temp = temp.next
+
+        xml += '</listaOrganismo>'
+        xml += '</datosMarte>'
+        file = open('pacientes-salida.xml', 'w')
+        file.write(xml)
+        file.close()
+        print("XML generado correctamente")
+    
