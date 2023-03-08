@@ -4,10 +4,12 @@ from xml.dom import minidom
 from classes.Muestra import Muestra
 from classes.Organismo import Organismo
 from classes.CeldaViva import CeldaViva
+from classes.ListaSimple import Lista_simple
 
 class Menu:
 
     muestraAnalizada:Muestra
+    muestrasAnalizadas: Lista_simple() = Lista_simple()
 
     def __init__(self) -> None:
         self.opciones=[
@@ -52,10 +54,11 @@ class Menu:
             self.procesarInformacion(objetoXml)
             self.pausa()
         elif(opcion=='2'):
-            self.graficarMuestra()
+            self.graficarMuestra(self.muestraAnalizada)
             self.pausa()
         elif(opcion=='3'):
-            print('Lista de organismos')
+            self.analizarMuestra()
+            self.pausa()
         elif(opcion=='5'):
             espera = input('\n\tUSAC - S1\n\tProyecto 1\n\tDesarrollado por Kevin Girón-202010844...')
             self.pausa()  
@@ -97,17 +100,17 @@ class Menu:
             columna         = celdaViva.childNodes[3].firstChild.data
             codigoOrganismo = celdaViva.childNodes[5].firstChild.data
 
-            nuevaCeldaViva  = CeldaViva(codigoOrganismo,columna,fila)
+            nuevaCeldaViva  = CeldaViva(codigoOrganismo,int(columna),int(fila))
 
             nuevaMuestra.listaCeldasVivas.agregar_al_inicio(nuevaCeldaViva)
 
         self.muestraAnalizada = nuevaMuestra
         print('Archivo cargado con exito!!')
 
-    def graficarMuestra(self):
+    def graficarMuestra(self, muestra, contador = 0):
         
-        x   = self.muestraAnalizada.dimensionX
-        y   = self.muestraAnalizada.dimensionY
+        x   = muestra.dimensionX
+        y   = muestra.dimensionY
 
         codigoGraphiz = """
             digraph structs {
@@ -131,19 +134,19 @@ class Menu:
                 if(cuentaX == -1):
                     codigoGraphiz=codigoGraphiz+'|'+str(cuentaY)
                 else:
-                    listaCeldasVivas  = self.muestraAnalizada.listaCeldasVivas
+                    listaCeldasVivas  = muestra.listaCeldasVivas
                     nodoActual = listaCeldasVivas.cabeza
 
                     codigoOrganismo = ""
                     while nodoActual != None:
                        
                         celdaViva:CeldaViva = nodoActual.dato
-                        coordenadaX = celdaViva.x
-                        coordenadaY = celdaViva.y
+                        coordenadaX = int(celdaViva.x)
+                        coordenadaY = int(celdaViva.y)
                         
                         if (int(cuentaX)==int(coordenadaX) and int(cuentaY) == int(coordenadaY)):
                             
-                            inicio = self.muestraAnalizada.listaOrganismos.cabeza
+                            inicio = muestra.listaOrganismos.cabeza
                             while(inicio!=None):
                                 organismo:Organismo = inicio.dato
                                 
@@ -169,7 +172,7 @@ class Menu:
         codigoGraphiz =codigoGraphiz+ """
                         "];
         """
-        inicio = self.muestraAnalizada.listaOrganismos.cabeza
+        inicio = muestra.listaOrganismos.cabeza
         codigoGraphiz =codigoGraphiz+"\""
         while(inicio!=None):
             organismo:Organismo = inicio.dato
@@ -178,12 +181,46 @@ class Menu:
         codigoGraphiz =codigoGraphiz+ """
                         \"}     
         """
-        archivo = open("./img/muestra.txt","w")
+        archivo = open("./img/muestra" + str(contador) + ".txt","w")
         archivo.write(codigoGraphiz)
         print("Creando imagen...")
         archivo.close()
-        system("dot -Tpng ./img/muestra.txt -o ./img/muestra.png")
-        system("start ./img/muestra.png")
+        system("dot -Tpng ./img/muestra" + str(contador) + ".txt -o ./img/muestra" + str(contador) + ".png")
+        system("start ./img/muestra" + str(contador) + ".png")
+
+    def analizarMuestra(self):
+        print('Analizando muestra...')
+        respuesta = self.muestraAnalizada.analizar()
+        cambios = respuesta['cambios']
+        if cambios > 0:
+            self.nuevaMuestra(respuesta)
+        step = 0
+        # recorrer muestras analizadas
+        nodoActual = self.muestrasAnalizadas.cabeza
+        while nodoActual != None:
+            step = step + 1
+            muestraAnalizada:Muestra = nodoActual.dato
+            respuesta = muestraAnalizada.analizar()
+            cambios = respuesta['cambios']
+            print('Cambios por aca: ' + str(cambios))
+            if cambios > 0:
+                self.nuevaMuestra(respuesta)
+            if step < 3:
+                nodoActual = nodoActual.siguiente
+
+
+
+    def nuevaMuestra(self, respuesta):
+        nuevaMuestra = Muestra(self.muestraAnalizada.codigo,self.muestraAnalizada.descripcion,self.muestraAnalizada.dimensionX,self.muestraAnalizada.dimensionY)
+        nuevaMuestra.listaOrganismos = self.muestraAnalizada.listaOrganismos
+        nuevaMuestra.listaCeldasVivas = respuesta['listaCeldasVivas']
+
+        self.muestrasAnalizadas.agregar_al_inicio(nuevaMuestra)
+        print('Nueva muestra generada')
+        self.graficarMuestra(nuevaMuestra, self.muestrasAnalizadas.contador())
+        print('Muestra graficada')
+
+        return nuevaMuestra
 
 
     def generateXml(self):
